@@ -26,9 +26,9 @@ class iCalUploader {
     // save
     var self = this;
 
-    console.log('* Loading iCloud calendars')
-    dav.createAccount({ server: ICLOUD_CAL_URL, xhr: self.xhr, loadCollections: true, loadObjects: true })
-    .then((account) => {
+    // do it
+    console.log('* Loading iCloud calendars');
+    dav.createAccount({ server: ICLOUD_CAL_URL, xhr: self.xhr, loadCollections: true, loadObjects: true }).then((account) => {
     
       account.calendars.forEach((calendar) => {
     
@@ -74,7 +74,6 @@ class iCalUploader {
                   xhr: self.xhr
                 }).then((object) => {
                   console.log('  - Created: ' + event.title);
-                  //console.dir(object);
                 }).catch((error) => {
                   console.log('  - Error: ' + event.title + ', ' + error);
                 });

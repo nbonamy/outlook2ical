@@ -25,11 +25,12 @@ outlook.auth().then(() => {
 
     if (events != null) {
       let ical = new iCalLoader(config.icloud);
-      ical.upload(events);  
+      ical.upload(events);
     }
 
-    // done
-    process.exit(0);
+    //TODO quit when auth server was launched
+    //     process.exit kills process too early as upload is a promise
+    //process.exit(0);
   
   });
 
