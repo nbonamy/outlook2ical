@@ -21,7 +21,7 @@ if (config == null || config.icloud == null || config.icloud.username == null ||
 let outlook = new OutlookLoader(config.outlook);
 outlook.auth().then(() => {
 
-  outlook.get().then((events) => {
+  outlook.getEvents().then((events) => {
 
     if (events != null) {
       let ical = new iCalLoader(config.icloud);

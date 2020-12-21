@@ -4,7 +4,7 @@ const uuid = require('uuid');
 
 const ICLOUD_CAL_URL = 'https://caldav.icloud.com/';
 
-class iCalLoader {
+class iCalUploader {
 
   constructor(options) {
 
@@ -115,4 +115,4 @@ class iCalLoader {
 
 }
 
-module.exports = iCalLoader;
+module.exports = iCalUploader;

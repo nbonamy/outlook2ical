@@ -43,7 +43,7 @@ class OutlookLoader {
       auth: {
         clientId: this.options.clientId,
         clientSecret: this.options.clientSecret,
-        authority: "https://login.microsoftonline.com/common",
+        authority: 'https://login.microsoftonline.com/common',
       },
       cache: { cachePlugin }
     });
@@ -118,14 +118,14 @@ class OutlookLoader {
 
   }
 
-  get() {
+  getEvents() {
 
     // save
     var self = this;
 
     return new Promise(function (resolve, reject) {
 
-      self._download().then((events) => {
+      self._downloadEvents().then((events) => {
 
         // filter
         console.log('* Filtering Outlook events')
@@ -135,13 +135,13 @@ class OutlookLoader {
         console.log('* Transforming Outlook events')
         resolve(filteredEvents.map((ev) => self._convertEvent(ev)));
 
-      }).catch((err) => reject(err));
+      });
 
     });
 
   }
 
-  _download() {
+  _downloadEvents() {
 
     // save
     var self = this;
@@ -254,13 +254,12 @@ class OutlookLoader {
 
       const options = {
         headers: {
-          Authorization: `Bearer ${accessToken}`
+          Authorization: `Bearer ${accessToken}`,
+          Prefer: 'outlook.timezone="UTC"'
         }
       };
 
-      axios.default.get(endpoint, options)
-        .then(response => resolve(response.data))
-        .catch(error => reject(error));
+      axios.default.get(endpoint, options).then(response => resolve(response.data));
 
     });
 
