@@ -1,3 +1,4 @@
+
 const dav = require('dav');
 const ics = require('ics');
 
@@ -25,7 +26,7 @@ class iCalUploader {
     // save
     var self = this;
 
-    return new Promise(function (resolve, reject) {
+    return new Promise(function (resolve, _) {
 
       // do it
       console.log('* Loading iCloud calendars');
@@ -39,16 +40,19 @@ class iCalUploader {
             // debug
             //console.dir(calendar, {depth: 3});
 
+            // all promises
+            let promises = [];
+
             // create/update events
             console.log('* Processing events (' + (events.length) + ')')
             events.forEach(event => {
 
               // ical version
-              ics.createEvent(event, (error, value) => {
+              ics.createEvent(event, (err, value) => {
 
                 // if error
-                if (error) {
-                  console.log('  - Error: ' + event.title + ', ' + error);
+                if (err) {
+                  console.log('  - Error: ' + event.title + ', ' + err);
                   return;
                 }
 
@@ -57,27 +61,28 @@ class iCalUploader {
                 if (calendar.objects != null) {
                   calendar.objects.forEach((object) => {
                     if (object.calendarData != null && object.calendarData.indexOf(event.uid) != -1) {
-                      console.log('  - Updated: ' + event.title);
                       object.calendarData = value;
-                      dav.updateCalendarObject(object, { xhr: self.xhr }).catch((err) => {
-                        console.log('  - Error: ' + event.title + ', ' + error);
-                      });
+                      promises.push(dav.updateCalendarObject(object, { xhr: self.xhr }).then((_) => {
+                        console.log('  - Updated: ' + event.title);
+                      }).catch((err) => {
+                        console.log('  - Error: ' + event.title + ', ' + err);
+                      }));
                       updated = true;
                     }
                   });
                 }
 
                 // create
-                if (updated === false) {
-                  dav.createCalendarObject(calendar, {
+                if (updated == false) {
+                  promises.push(dav.createCalendarObject(calendar, {
                     filename: event.uid + '.ics',
                     data: value,
                     xhr: self.xhr
-                  }).then((object) => {
+                  }).then((_) => {
                     console.log('  - Created: ' + event.title);
-                  }).catch((error) => {
-                    console.log('  - Error: ' + event.title + ', ' + error);
-                  });
+                  }).catch((err) => {
+                    console.log('  - Error: ' + event.title + ', ' + err);
+                  }));
                 }
 
               });
@@ -96,8 +101,8 @@ class iCalUploader {
                       let event = events.find(ev => ev.uid === uid);
                       if (event == null) {
                         console.log('  - Deleted: ' + uid);
-                        dav.deleteCalendarObject(object, { xhr: self.xhr }).catch((err) => {
-                        })
+                        promises.push(dav.deleteCalendarObject(object, { xhr: self.xhr }).catch((err) => {
+                        }));
                       }
                     }
                   }
@@ -106,7 +111,7 @@ class iCalUploader {
             }
 
             // done
-            resolve();
+            Promise.all(promises).then((_) => resolve()).catch((_) => resolve());
             return;
 
           }
