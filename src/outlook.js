@@ -100,7 +100,7 @@ class OutlookLoader {
           self.server.close();
 
           // tell
-          res.sendStatus(200);
+          res.status(200).send('You can close this window now!');
           console.log('Authentication successful!')
           resolve();
 

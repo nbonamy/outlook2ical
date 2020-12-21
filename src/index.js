@@ -1,6 +1,6 @@
 
 const OutlookLoader = require('./outlook.js');
-const iCalLoader = require('./ical.js');
+const iCalUploader = require('./ical.js');
 const yamlConfig = require('config-yaml');
 
 const CONFIG_PATH = '../config/config.yml';
@@ -24,14 +24,25 @@ outlook.auth().then(() => {
   outlook.getEvents().then((events) => {
 
     if (events != null) {
-      let ical = new iCalLoader(config.icloud);
-      ical.upload(events);
+
+      // ical uploader
+      let ical = new iCalUploader(config.icloud);
+      ical.upload(events).then(() => {
+
+        // explicit exit as express may have been started
+        // and even a stop on the server leaves main process hanging
+        process.exit(0);
+      
+      });
+    
+    } else {
+
+      // explicit exit as express may have been started
+      // and even a stop on the server leaves main process hanging
+      process.exit(0);
+
     }
 
-    //TODO quit when auth server was launched
-    //     process.exit kills process too early as upload is a promise
-    //process.exit(0);
-  
   });
 
 });
