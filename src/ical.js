@@ -1,6 +1,5 @@
 const dav = require('dav');
 const ics = require('ics');
-const uuid = require('uuid');
 
 const ICLOUD_CAL_URL = 'https://caldav.icloud.com/';
 
