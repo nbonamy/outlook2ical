@@ -166,6 +166,12 @@ class OutlookLoader {
 
       // date
       let today = new Date()
+      if (self.options.timezone != null) {
+        today = today.toLocaleString("en-US", { timeZone: self.options.timezone });
+        today = new Date(today);
+      }
+
+      // tomorrow
       let tomorrow = new Date(today)
       tomorrow.setDate(tomorrow.getDate() + 1)
 
