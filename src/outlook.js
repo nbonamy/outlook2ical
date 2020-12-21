@@ -1,7 +1,8 @@
-const fs = require('fs');
+
 const msal = require('@azure/msal-node');
 const express = require('express');
 const axios = require('axios');
+const fs = require('fs');
 
 const ACCOUNT_ID_CACHE = './data/outlook.id';
 const ACCOUNT_DATA_CACHE = './data/outlook_data.json';
@@ -78,7 +79,7 @@ class OutlookLoader {
 
         self.cca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
           res.redirect(response);
-        }).catch((error) => reject(error));
+        }).catch((err) => reject(err));
 
       });
 
@@ -104,9 +105,9 @@ class OutlookLoader {
           console.log('Authentication successful!')
           resolve();
 
-        }).catch((error) => {
-          res.status(500).send(error);
-          reject(error);
+        }).catch((err) => {
+          res.status(500).send(err);
+          reject(err);
         });
 
       });
@@ -123,7 +124,7 @@ class OutlookLoader {
     // save
     var self = this;
 
-    return new Promise(function (resolve, reject) {
+    return new Promise(function (resolve, _) {
 
       self._downloadEvents().then((events) => {
 
@@ -227,21 +228,87 @@ class OutlookLoader {
   }
 
   _convertEvent(ev) {
+
+    // url is tricky
+    let url = ev.onlineMeetingUrl;
+    if (this._isValidUrl(url) == false && ev.onlineMeeting != null) {
+      url = ev.onlineMeeting.joinUrl;
+    }
+
+    // now look in various places
+    if (this._isValidUrl(url) == false) {
+      url = this._extractOnlineUrl(ev, /https:\/\/teams.microsoft.com\/l\/meetup-join\/[^\"<]*/);
+    }
+    if (this._isValidUrl(url) == false) {
+      url = this._extractOnlineUrl(ev, /https:\/\/.*\\.webex.com\/.*\/j.php[^\"<]*/);
+    }
+    if (this._isValidUrl(url) == false) {
+      url = this._extractOnlineUrl(ev, /https:\/\/.*\\.webex.com\/join\/[^\"<]*/);
+    }
+    if (this._isValidUrl(url) == false) {
+      url = this._extractOnlineUrl(ev, /https:\/\/.*\\.webex.com\/meet\/[^\"<]*/);
+    }
+    if (this._isValidUrl(url) == false) {
+      url = this._extractOnlineUrl(ev, /https:\/\/zoom.us\/j\/[^\"<]*/);
+    }
+    if (this._isValidUrl(url) == false) {
+      url = this._extractOnlineUrl(ev, /https:\/\/meet.google.com\/[^\"<]*/);
+    }
+
+    // fallback
+    if (this._isValidUrl(url) == false) {
+      url = ev.webLink;
+    }
+
+    // organizer
+    let organizer = null;
+    if (ev.organizer != null && ev.organizer.emailAddress != null) {
+      organizer = {
+        name: ev.organizer.emailAddress.name,
+        email: ev.organizer.emailAddress.address,
+      }
+    }
+
     return {
       uid: ev.iCalUId.slice(-32),
       title: ev.subject,
       description: ev.bodyPreview,
-      url: ev.webLink,
-      location: ev.location.displayName,
-      organizer: {
-        name: ev.organizer.emailAddress.name,
-        email: ev.organizer.emailAddress.address,
-      },
+      url: url,
+      location: ev.location == null ? null : ev.location.displayName,
+      organizer: organizer,
       startInputType: 'utc',
       endInputType: 'utc',
       start: this._extractDateTime(ev.start.dateTime),
       end: this._extractDateTime(ev.end.dateTime),
     }
+  
+  }
+
+  _isValidUrl(url) {
+    return url != null && url.length > 0;
+  }
+
+  _extractOnlineUrl(ev, regex) {
+
+    // in location
+    if (ev.location != null && ev.location.displayName != null) {
+      let match = ev.location.displayName.match(regex);
+      if (match != null && this._isValidUrl(match[0])) {
+        return match[0];
+      }
+    }
+
+    // in body
+    if (ev.body != null && ev.body.content != null) {
+      let match = ev.body.content.match(regex);
+      if (match != null && this._isValidUrl(match[0])) {
+        return match[0];
+      }
+    }
+
+    // too bad
+    return null;
+
   }
 
   _extractDateTime(datetime) {
