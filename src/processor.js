@@ -93,6 +93,8 @@ class EventProcessor {
       status = 'FREE';
     } else if (ev.showAs == 'free') {
       status = 'FREE';
+    } else if (ev.showAs == 'oof') {
+      status = 'OOF';
     }
 
     // done
@@ -100,8 +102,8 @@ class EventProcessor {
       uid: uid,
       title: ev.subject,
       description: ev.bodyPreview,
-      start: this._extractDateTime(ev.start.dateTime),
-      end: this._extractDateTime(ev.end.dateTime),
+      start: this._extractDateTime(ev, ev.start.dateTime),
+      end: this._extractDateTime(ev, ev.end.dateTime),
       location: ev.location == null ? null : ev.location.displayName,
       url: this._calcOnlineUrl(ev),
       organizer: organizer,
@@ -178,14 +180,22 @@ class EventProcessor {
 
   }
 
-  _extractDateTime(datetime) {
-    return [
-      parseInt(datetime.substr(0, 4)),
-      parseInt(datetime.substr(5, 2)),
-      parseInt(datetime.substr(8, 2)),
-      parseInt(datetime.substr(11, 2)),
-      parseInt(datetime.substr(14, 2)),
-    ];
+  _extractDateTime(ev, datetime) {
+    if (ev.isAllDay) {
+      return [
+        parseInt(datetime.substr(0, 4)),
+        parseInt(datetime.substr(5, 2)),
+        parseInt(datetime.substr(8, 2)),
+      ];
+    } else {
+      return [
+        parseInt(datetime.substr(0, 4)),
+        parseInt(datetime.substr(5, 2)),
+        parseInt(datetime.substr(8, 2)),
+        parseInt(datetime.substr(11, 2)),
+        parseInt(datetime.substr(14, 2)),
+      ];
+    }
   }
 
 }
