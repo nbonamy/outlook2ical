@@ -64,13 +64,10 @@ class OutlookLoader {
 
   auth() {
 
-    // save
-    var self = this;
-
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
 
       // if already auth
-      if (self.isAuth()) {
+      if (this.isAuth()) {
         resolve();
         return;
       }
@@ -84,7 +81,7 @@ class OutlookLoader {
           redirectUri: REDIRECT_URI,
         };
 
-        self.cca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
+        this.cca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
           res.redirect(response);
         }).catch((err) => reject(err));
 
@@ -98,14 +95,14 @@ class OutlookLoader {
           redirectUri: REDIRECT_URI,
         };
 
-        self.cca.acquireTokenByCode(tokenRequest).then((response) => {
+        this.cca.acquireTokenByCode(tokenRequest).then((response) => {
 
           // save account info
-          self.accountId = response.account.homeAccountId;
-          fs.writeFileSync(ACCOUNT_ID_CACHE, self.accountId);
+          this.accountId = response.account.homeAccountId;
+          fs.writeFileSync(ACCOUNT_ID_CACHE, this.accountId);
 
           // close server
-          self.server.close();
+          this.server.close();
 
           // tell
           res.status(200).send('You can close this window now!');
@@ -120,7 +117,7 @@ class OutlookLoader {
       });
 
       // now listen
-      self.server = app.listen(SERVER_PORT, () => console.log(`Open a browser and navigate to http://localhost:${SERVER_PORT}!`));
+      this.server = app.listen(SERVER_PORT, () => console.log(`Open a browser and navigate to http://localhost:${SERVER_PORT}!`));
 
     });
 
@@ -128,11 +125,8 @@ class OutlookLoader {
 
   getEvents() {
 
-    // save
-    var self = this;
-
-    return new Promise(function (resolve, _) {
-      self._downloadEvents().then((events) => {
+    return new Promise((resolve, _) => {
+      this._downloadEvents().then((events) => {
         resolve(events);
       });
     });
@@ -141,19 +135,16 @@ class OutlookLoader {
 
   _downloadEvents() {
 
-    // save
-    var self = this;
-
-    return new Promise(async function (resolve, reject) {
+    return new Promise(async (resolve, reject) => {
 
       // check we have an account
-      if (self.accountId == null) {
+      if (this.accountId == null) {
         reject(new Error('No account'));
         return;
       }
 
       // load account from cache
-      let account = await self.cca.getTokenCache().getAccountByHomeId(self.accountId);
+      let account = await this.cca.getTokenCache().getAccountByHomeId(this.accountId);
       if (account == null) {
         reject(new Error('No account'));
         return;
@@ -164,22 +155,22 @@ class OutlookLoader {
 
       // date
       let today = new Date();
-      today.setDate(today.getDate() - self.options.before);
-      if (self.options.timezone != null) {
-        today = today.toLocaleString("en-US", { timeZone: self.options.timezone });
+      today.setDate(today.getDate() - this.options.before);
+      if (this.options.timezone != null) {
+        today = today.toLocaleString("en-US", { timeZone: this.options.timezone });
         today = new Date(today);
       }
 
       // tomorrow
       let tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + self.options.after);
+      tomorrow.setDate(tomorrow.getDate() + this.options.after);
 
       // url
       let graphEndpoint = 'https://graph.microsoft.com/v1.0/me/calendar/calendarView';
       graphEndpoint += '?startDateTime=' + today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate() + 'T00:00';
       graphEndpoint += '&endDateTime=' + tomorrow.getFullYear() + '-' + (tomorrow.getMonth() + 1) + '-' + tomorrow.getDate() + 'T23:59';
       graphEndpoint += '&$orderBy=start/dateTime';
-      graphEndpoint += '&$top=' + self.options.count;
+      graphEndpoint += '&$top=' + this.options.count;
       console.log('  - ' + graphEndpoint);
 
       // build silent request
@@ -189,8 +180,8 @@ class OutlookLoader {
       };
 
       // do it
-      self.cca.acquireTokenSilent(silentRequest).then((response) => {
-        self._callMSGraph(graphEndpoint, response.accessToken).then((response) => {
+      this.cca.acquireTokenSilent(silentRequest).then((response) => {
+        this._callMSGraph(graphEndpoint, response.accessToken).then((response) => {
           resolve(response.value);
         });
       });
@@ -201,7 +192,7 @@ class OutlookLoader {
 
   _callMSGraph(endpoint, accessToken) {
 
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
 
       const options = {
         headers: {

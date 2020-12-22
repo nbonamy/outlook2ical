@@ -16,18 +16,15 @@ class EventProcessor {
 
   process(events) {
 
-    // save
-    var self = this;
-
-    return new Promise(function(resolve, _) {
+    return new Promise((resolve, _) => {
 
       // filter
       console.log('* Filtering Outlook events');
-      let filteredEvents = events.filter((ev) => self._selectEvent(ev));
+      let filteredEvents = events.filter((ev) => this._selectEvent(ev));
 
       // now transform
       console.log('* Transforming Outlook events');
-      resolve(filteredEvents.map((ev) => self._convertEvent(ev)));
+      resolve(filteredEvents.map((ev) => this._convertEvent(ev)));
 
     });
 

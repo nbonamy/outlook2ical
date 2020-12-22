@@ -23,19 +23,16 @@ class iCalUploader {
 
   upload(events) {
 
-    // save
-    var self = this;
-
-    return new Promise(function (resolve, _) {
+    return new Promise((resolve, _) => {
 
       // do it
       console.log('* Loading iCloud calendars');
-      dav.createAccount({ server: ICLOUD_CAL_URL, xhr: self.xhr, loadCollections: true, loadObjects: true }).then((account) => {
+      dav.createAccount({ server: ICLOUD_CAL_URL, xhr: this.xhr, loadCollections: true, loadObjects: true }).then((account) => {
 
         account.calendars.forEach((calendar) => {
 
           // find calendar
-          if (calendar.displayName == self.calendarName) {
+          if (calendar.displayName == this.calendarName) {
 
             // debug
             //console.dir(calendar, {depth: 3});
@@ -62,7 +59,7 @@ class iCalUploader {
                   calendar.objects.forEach((object) => {
                     if (object.calendarData != null && object.calendarData.indexOf(event.uid) != -1) {
                       object.calendarData = value;
-                      promises.push(dav.updateCalendarObject(object, { xhr: self.xhr }).then((_) => {
+                      promises.push(dav.updateCalendarObject(object, { xhr: this.xhr }).then((_) => {
                         console.log('  - Updated: ' + event.title);
                       }).catch((err) => {
                         console.log('  - Error: ' + event.title + ', ' + err);
@@ -77,7 +74,7 @@ class iCalUploader {
                   promises.push(dav.createCalendarObject(calendar, {
                     filename: event.uid + '.ics',
                     data: value,
-                    xhr: self.xhr
+                    xhr: this.xhr
                   }).then((_) => {
                     console.log('  - Created: ' + event.title);
                   }).catch((err) => {
@@ -101,7 +98,7 @@ class iCalUploader {
                       let event = events.find(ev => ev.uid === uid);
                       if (event == null) {
                         console.log('  - Deleted: ' + uid);
-                        promises.push(dav.deleteCalendarObject(object, { xhr: self.xhr }).catch((err) => {
+                        promises.push(dav.deleteCalendarObject(object, { xhr: this.xhr }).catch((err) => {
                         }));
                       }
                     }
