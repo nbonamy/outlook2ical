@@ -3,6 +3,7 @@ const OutlookLoader = require('./outlook.js');
 const EventProcessor = require('./processor.js');
 const iCalUploader = require('./ical.js');
 const yamlConfig = require('config-yaml');
+const process = require('process');
 
 const CONFIG_PATH = '../config/config.yml';
 

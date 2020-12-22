@@ -1,10 +1,10 @@
-'use strict';
+
 const dav = require('dav');
 const ics = require('ics');
 
 const ICLOUD_CAL_URL = 'https://caldav.icloud.com/';
 
-class iCalUploader {
+module.exports = class {
 
   constructor(options) {
 
@@ -122,5 +122,3 @@ class iCalUploader {
   }
 
 }
-
-module.exports = iCalUploader;

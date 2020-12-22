@@ -1,4 +1,4 @@
-'use strict';
+
 const msal = require('@azure/msal-node');
 const express = require('express');
 const axios = require('axios');
@@ -27,7 +27,7 @@ const cachePlugin = {
   afterCacheAccess
 };
 
-class OutlookLoader {
+module.exports = class {
 
   constructor(options) {
 
@@ -208,5 +208,3 @@ class OutlookLoader {
   }
 
 }
-
-module.exports = OutlookLoader;

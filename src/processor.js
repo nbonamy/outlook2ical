@@ -1,5 +1,5 @@
-'use strict';
-class EventProcessor {
+
+module.exports = class {
 
   constructor(options) {
 
@@ -196,5 +196,3 @@ class EventProcessor {
   }
 
 }
-
-module.exports = EventProcessor;
