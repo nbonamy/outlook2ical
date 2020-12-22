@@ -39,7 +39,7 @@ module.exports = class {
     }
 
     // skip all day
-    if (this.options.allday == false && ev.isAllDay) {
+    if (this.options.allday === false && ev.isAllDay) {
       console.log('  - Skipped (all day): ' + ev.subject);
       return false;
     }
@@ -126,22 +126,22 @@ module.exports = class {
 
     // now look in various places
     if (this._isValidUrl(url) == false) {
-      url = this._extractOnlineUrl(ev, /https:\/\/teams.microsoft.com\/l\/meetup-join\/[^\"<]*/);
+      url = this._extractOnlineUrl(ev, /https:\/\/teams.microsoft.com\/l\/meetup-join\/[^ \"\.<]*/);
     }
     if (this._isValidUrl(url) == false) {
-      url = this._extractOnlineUrl(ev, /https:\/\/.*\\.webex.com\/.*\/j.php[^\"<]*/);
+      url = this._extractOnlineUrl(ev, /https:\/\/.*\.webex.com\/.*\/j.php[^ \"\.<]*/);
     }
     if (this._isValidUrl(url) == false) {
-      url = this._extractOnlineUrl(ev, /https:\/\/.*\\.webex.com\/join\/[^\"<]*/);
+      url = this._extractOnlineUrl(ev, /https:\/\/.*\.webex.com\/join\/[^ \"\.<]*/);
     }
     if (this._isValidUrl(url) == false) {
-      url = this._extractOnlineUrl(ev, /https:\/\/.*\\.webex.com\/meet\/[^\"<]*/);
+      url = this._extractOnlineUrl(ev, /https:\/\/.*\.webex.com\/meet\/[^ \"\.<]*/);
     }
     if (this._isValidUrl(url) == false) {
-      url = this._extractOnlineUrl(ev, /https:\/\/zoom.us\/j\/[^\"<]*/);
+      url = this._extractOnlineUrl(ev, /https:\/\/zoom.us\/j\/[^ \"\.<]*/);
     }
     if (this._isValidUrl(url) == false) {
-      url = this._extractOnlineUrl(ev, /https:\/\/meet.google.com\/[^\"<]*/);
+      url = this._extractOnlineUrl(ev, /https:\/\/meet.google.com\/[^ \"\.<]*/);
     }
 
     // fallback
