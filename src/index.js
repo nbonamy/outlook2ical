@@ -14,7 +14,7 @@ try {
 
 // check
 if (config == null || config.icloud == null || config.icloud.username == null || config.icloud.password == null || config.icloud.calendarName == null) {
-  console.log('Invalid configuration in ' + CONFIG_PATH)
+  console.log('Invalid configuration in ' + CONFIG_PATH);
   return;
 }
 

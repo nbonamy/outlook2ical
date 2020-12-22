@@ -14,7 +14,7 @@ class iCalUploader {
         username: options.username,
         password: options.password
       })
-    )
+    );
 
     // save this
     this.calendarName = options.calendarName;
@@ -44,7 +44,7 @@ class iCalUploader {
             let promises = [];
 
             // create/update events
-            console.log('* Processing events (' + (events.length) + ')')
+            console.log('* Processing events (' + (events.length) + ')');
             events.forEach(event => {
 
               // ical version

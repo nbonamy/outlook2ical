@@ -22,11 +22,11 @@ class EventProcessor {
     return new Promise(function(resolve, _) {
 
       // filter
-      console.log('* Filtering Outlook events')
+      console.log('* Filtering Outlook events');
       let filteredEvents = events.filter((ev) => self._selectEvent(ev));
 
       // now transform
-      console.log('* Transforming Outlook events')
+      console.log('* Transforming Outlook events');
       resolve(filteredEvents.map((ev) => self._convertEvent(ev)));
 
     });
@@ -62,8 +62,8 @@ class EventProcessor {
   _convertEvent(ev) {
 
     // calc the id (make it unique using date)
-    let uid = ev.iCalUId.slice(-16)
-    uid += ev.start.dateTime.substr(0, 16).replace(/[\-T:]/g, '')
+    let uid = ev.iCalUId.slice(-16);
+    uid += ev.start.dateTime.substr(0, 16).replace(/[\-T:]/g, '');
 
     // organizer
     let organizer = null;
@@ -71,7 +71,7 @@ class EventProcessor {
       organizer = {
         name: ev.organizer.emailAddress.name,
         email: ev.organizer.emailAddress.address,
-      }
+      };
     }
 
     // alarm
@@ -109,7 +109,7 @@ class EventProcessor {
       alarms: alarm,
       startInputType: 'utc',
       endInputType: 'utc',
-    }
+    };
   
   }
 

@@ -109,7 +109,7 @@ class OutlookLoader {
 
           // tell
           res.status(200).send('You can close this window now!');
-          console.log('Authentication successful!')
+          console.log('Authentication successful!');
           resolve();
 
         }).catch((err) => {
@@ -132,13 +132,9 @@ class OutlookLoader {
     var self = this;
 
     return new Promise(function (resolve, _) {
-
       self._downloadEvents().then((events) => {
-
         resolve(events);
-
       });
-
     });
 
   }
@@ -167,16 +163,16 @@ class OutlookLoader {
       console.log('* Downloading Outlook events');
 
       // date
-      let today = new Date()
-      today.setDate(today.getDate() - self.options.before)
+      let today = new Date();
+      today.setDate(today.getDate() - self.options.before);
       if (self.options.timezone != null) {
-        today = today.toLocaleString("en-US", { timeZone: self.options.timezone })
-        today = new Date(today)
+        today = today.toLocaleString("en-US", { timeZone: self.options.timezone });
+        today = new Date(today);
       }
 
       // tomorrow
-      let tomorrow = new Date(today)
-      tomorrow.setDate(tomorrow.getDate() + self.options.after)
+      let tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + self.options.after);
 
       // url
       let graphEndpoint = 'https://graph.microsoft.com/v1.0/me/calendar/calendarView';
