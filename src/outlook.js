@@ -1,4 +1,4 @@
-
+'use strict';
 const msal = require('@azure/msal-node');
 const express = require('express');
 const axios = require('axios');
@@ -31,8 +31,15 @@ class OutlookLoader {
 
   constructor(options) {
 
+    // default options
+    const defaults = {
+      count: 100,
+      before: 0,
+      after: 1,
+    };
+
     // save
-    this.options = options;
+    this.options = { ...defaults, ...options };
 
     // read account id
     if (fs.existsSync(ACCOUNT_ID_CACHE)) {
@@ -128,13 +135,7 @@ class OutlookLoader {
 
       self._downloadEvents().then((events) => {
 
-        // filter
-        console.log('* Filtering Outlook events')
-        let filteredEvents = events.filter((ev) => self._selectEvent(ev));
-
-        // now transform
-        console.log('* Transforming Outlook events')
-        resolve(filteredEvents.map((ev) => self._convertEvent(ev)));
+        resolve(events);
 
       });
 
@@ -167,21 +168,22 @@ class OutlookLoader {
 
       // date
       let today = new Date()
+      today.setDate(today.getDate() - self.options.before)
       if (self.options.timezone != null) {
-        today = today.toLocaleString("en-US", { timeZone: self.options.timezone });
-        today = new Date(today);
+        today = today.toLocaleString("en-US", { timeZone: self.options.timezone })
+        today = new Date(today)
       }
 
       // tomorrow
       let tomorrow = new Date(today)
-      tomorrow.setDate(tomorrow.getDate() + 1)
+      tomorrow.setDate(tomorrow.getDate() + self.options.after)
 
       // url
       let graphEndpoint = 'https://graph.microsoft.com/v1.0/me/calendar/calendarView';
       graphEndpoint += '?startDateTime=' + today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate() + 'T00:00';
       graphEndpoint += '&endDateTime=' + tomorrow.getFullYear() + '-' + (tomorrow.getMonth() + 1) + '-' + tomorrow.getDate() + 'T23:59';
       graphEndpoint += '&$orderBy=start/dateTime';
-      graphEndpoint += '&$top=100';
+      graphEndpoint += '&$top=' + self.options.count;
       console.log('  - ' + graphEndpoint);
 
       // build silent request
@@ -199,126 +201,6 @@ class OutlookLoader {
 
     });
 
-  }
-
-  _selectEvent(ev) {
-
-    // skip cancelled
-    if (ev.isCancelled) {
-      console.log('  - Skipped (cancelled): ' + ev.subject);
-      return false;
-    }
-
-    // skip all day
-    if (ev.isAllDay) {
-      console.log('  - Skipped (all day): ' + ev.subject);
-      return false;
-    }
-
-    // show only busy ones
-    if (ev.showAs !== 'busy') {
-      console.log('  - Skipped (not busy): ' + ev.subject);
-      return false;
-    }
-
-    // default
-    console.log('  - Preserved: ' + ev.subject);
-    return true;
-
-  }
-
-  _convertEvent(ev) {
-
-    // url is tricky
-    let url = ev.onlineMeetingUrl;
-    if (this._isValidUrl(url) == false && ev.onlineMeeting != null) {
-      url = ev.onlineMeeting.joinUrl;
-    }
-
-    // now look in various places
-    if (this._isValidUrl(url) == false) {
-      url = this._extractOnlineUrl(ev, /https:\/\/teams.microsoft.com\/l\/meetup-join\/[^\"<]*/);
-    }
-    if (this._isValidUrl(url) == false) {
-      url = this._extractOnlineUrl(ev, /https:\/\/.*\\.webex.com\/.*\/j.php[^\"<]*/);
-    }
-    if (this._isValidUrl(url) == false) {
-      url = this._extractOnlineUrl(ev, /https:\/\/.*\\.webex.com\/join\/[^\"<]*/);
-    }
-    if (this._isValidUrl(url) == false) {
-      url = this._extractOnlineUrl(ev, /https:\/\/.*\\.webex.com\/meet\/[^\"<]*/);
-    }
-    if (this._isValidUrl(url) == false) {
-      url = this._extractOnlineUrl(ev, /https:\/\/zoom.us\/j\/[^\"<]*/);
-    }
-    if (this._isValidUrl(url) == false) {
-      url = this._extractOnlineUrl(ev, /https:\/\/meet.google.com\/[^\"<]*/);
-    }
-
-    // fallback
-    if (this._isValidUrl(url) == false) {
-      url = ev.webLink;
-    }
-
-    // organizer
-    let organizer = null;
-    if (ev.organizer != null && ev.organizer.emailAddress != null) {
-      organizer = {
-        name: ev.organizer.emailAddress.name,
-        email: ev.organizer.emailAddress.address,
-      }
-    }
-
-    return {
-      uid: ev.iCalUId.slice(-32),
-      title: ev.subject,
-      description: ev.bodyPreview,
-      url: url,
-      location: ev.location == null ? null : ev.location.displayName,
-      organizer: organizer,
-      startInputType: 'utc',
-      endInputType: 'utc',
-      start: this._extractDateTime(ev.start.dateTime),
-      end: this._extractDateTime(ev.end.dateTime),
-    }
-  
-  }
-
-  _isValidUrl(url) {
-    return url != null && url.length > 0;
-  }
-
-  _extractOnlineUrl(ev, regex) {
-
-    // in location
-    if (ev.location != null && ev.location.displayName != null) {
-      let match = ev.location.displayName.match(regex);
-      if (match != null && this._isValidUrl(match[0])) {
-        return match[0];
-      }
-    }
-
-    // in body
-    if (ev.body != null && ev.body.content != null) {
-      let match = ev.body.content.match(regex);
-      if (match != null && this._isValidUrl(match[0])) {
-        return match[0];
-      }
-    }
-
-    // too bad
-    return null;
-
-  }
-
-  _extractDateTime(datetime) {
-    return [
-      parseInt(datetime.substr(0, 4)),
-      parseInt(datetime.substr(5, 2)),
-      parseInt(datetime.substr(8, 2)),
-      parseInt(datetime.substr(11, 2)),
-      parseInt(datetime.substr(14, 2)),
-    ];
   }
 
   _callMSGraph(endpoint, accessToken) {

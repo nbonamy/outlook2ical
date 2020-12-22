@@ -1,5 +1,6 @@
-
+'use strict';
 const OutlookLoader = require('./outlook.js');
+const EventProcessor = require('./processor.js');
 const iCalUploader = require('./ical.js');
 const yamlConfig = require('config-yaml');
 
@@ -21,20 +22,27 @@ if (config == null || config.icloud == null || config.icloud.username == null ||
 let outlook = new OutlookLoader(config.outlook);
 outlook.auth().then(() => {
 
+  // get events
   outlook.getEvents().then((events) => {
 
     if (events != null) {
 
-      // ical uploader
-      let ical = new iCalUploader(config.icloud);
-      ical.upload(events).then(() => {
+      // process
+      let processor = new EventProcessor(config.process);
+      processor.process(events).then((events) => {
 
-        // explicit exit as express may have been started
-        // and even a stop on the server leaves main process hanging
-        process.exit(0);
+        // ical uploader
+        let ical = new iCalUploader(config.icloud);
+        ical.upload(events).then(() => {
+
+          // explicit exit as express may have been started
+          // and even a stop on the server leaves main process hanging
+          process.exit(0);
+        
+        });
       
       });
-    
+
     } else {
 
       // explicit exit as express may have been started

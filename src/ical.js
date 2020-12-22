@@ -1,4 +1,4 @@
-
+'use strict';
 const dav = require('dav');
 const ics = require('ics');
 
