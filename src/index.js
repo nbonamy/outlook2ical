@@ -1,4 +1,4 @@
-'use strict';
+
 const OutlookLoader = require('./outlook.js');
 const EventProcessor = require('./processor.js');
 const iCalUploader = require('./ical.js');
