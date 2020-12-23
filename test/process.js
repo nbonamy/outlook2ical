@@ -279,7 +279,7 @@ describe('event converter', () => {
     for (const [statusIn, statusOut] of Object.entries(statuses)) {
       
       expect(processor._convertEvent({
-        iCalUId: 'abcdefghijklmnopqrstuvwxyz',
+        iCalUId: 'abcdefghijklmnop',
         showAs: statusIn,
       }).busyStatus).to.eql(statusOut);
 
@@ -294,7 +294,7 @@ describe('event converter', () => {
     });
 
     expect(processor._convertEvent({
-      iCalUId: 'abcdefghijklmnopqrstuvwxyz',
+      iCalUId: 'abcdefghijklmnop',
     }).alarms).to.eql([{
       action: 'display', repeat: 0, trigger: { before: true, minutes: 5, },
     }]);
