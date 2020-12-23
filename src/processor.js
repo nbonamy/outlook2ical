@@ -60,7 +60,9 @@ module.exports = class {
 
     // calc the id (make it unique using date)
     let uid = ev.iCalUId.slice(-16);
-    uid += ev.start.dateTime.substr(0, 16).replace(/[\-T:]/g, '');
+    if (ev.start != null && ev.start.dateTime != null) {
+      uid += ev.start.dateTime.substr(0, 16).replace(/[\-T:]/g, '');
+    }
 
     // organizer
     let organizer = null;
@@ -99,8 +101,8 @@ module.exports = class {
       uid: uid,
       title: ev.subject,
       description: ev.bodyPreview,
-      start: this._extractDateTime(ev, ev.start.dateTime),
-      end: this._extractDateTime(ev, ev.end.dateTime),
+      start: this._extractDateTime(ev, ev.start?.dateTime),
+      end: this._extractDateTime(ev, ev.end?.dateTime),
       location: ev.location == null ? null : ev.location.displayName,
       url: this._calcOnlineUrl(ev),
       organizer: organizer,
@@ -178,6 +180,12 @@ module.exports = class {
   }
 
   _extractDateTime(ev, datetime) {
+
+    // check
+    if (datetime == null) {
+      return null;
+    }
+
     if (ev.isAllDay) {
       return [
         parseInt(datetime.substr(0, 4)),

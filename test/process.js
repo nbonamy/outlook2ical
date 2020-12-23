@@ -3,16 +3,16 @@ const chai = require('chai')
 const EventProcessor = require('../src/processor.js');
 const expect = chai.expect;
 
+before(() => {
+  this.consoleLog = console.log;
+  console.log = function() {};
+});
+
+after(() => {
+  console.log = this.consoleLog;
+});
+
 describe('event selector', () => {
-
-  beforeEach(() => {
-    this.consoleLog = console.log;
-    console.log = function() {};
-  });
-
-  afterEach(() => {
-    console.log = this.consoleLog;
-  });
 
 	it('should not select cancelled events', () => {
     let processor = new EventProcessor({});
@@ -213,5 +213,92 @@ describe('online url', () => {
     })).to.equal('https://meet.google.com/abcdef');
 
 	});
+
+});
+
+describe('datetime extractor', () => {
+
+  let processor = new EventProcessor({});
+
+  it('should convert datetime properly', () => {
+    expect(processor._extractDateTime({                 }, '1972-11-27T11:54:00.000')).to.eql([ 1972, 11, 27, 11, 54 ]);
+    expect(processor._extractDateTime({ isAllDay: false }, '1972-11-27T11:54:00.000')).to.eql([ 1972, 11, 27, 11, 54 ]);
+  });
+
+  it('should convert all day datetime properly', () => {
+    expect(processor._extractDateTime({ isAllDay: true }, '1972-11-27T11:54:00.000')).to.eql([ 1972, 11, 27 ]);
+  });
+
+});
+
+describe('event converter', () => {
+
+  it('should convert events properly', () => {
+
+    let processor = new EventProcessor({});
+
+    expect(processor._convertEvent({
+      iCalUId: 'abcdefghijklmnopqrstuvwxyz',
+      subject: 'subject',
+      bodyPreview: 'bodyPreview',
+      body: { content: 'bodyContent' },
+      start: { dateTime: '1972-11-27T11:54:00.000'},
+      end: { dateTime: '2045-01-07T21:44:00.000'},
+      onlineMeetingUrl: 'http://www.sportyapps.fr',
+      location: { displayName: 'location' },
+      organizer: { emailAddress: { name: 'organizer', address: 'organizer@org.org' } },
+      showAs: 'busy',
+    })).to.eql({
+      uid: 'klmnopqrstuvwxyz197211271154',
+      title: 'subject',
+      description: 'bodyPreview',
+      start: [ 1972, 11, 27, 11, 54 ],
+      end: [ 2045, 01, 07, 21, 44 ],
+      location: 'location',
+      url: 'http://www.sportyapps.fr',
+      organizer: { name: 'organizer', email: 'organizer@org.org' },
+      busyStatus: 'BUSY',
+      alarms: null,
+      startInputType: 'utc',
+      endInputType: 'utc',
+    });
+    
+  });
+  
+  it('should map statuses properly', () => {
+
+    let processor = new EventProcessor({});
+
+    const statuses = {
+      'busy': 'BUSY',
+      'free': 'FREE',
+      'tentative': 'FREE',
+      'oof': 'OOF',
+    }
+
+    for (const [statusIn, statusOut] of Object.entries(statuses)) {
+      
+      expect(processor._convertEvent({
+        iCalUId: 'abcdefghijklmnopqrstuvwxyz',
+        showAs: statusIn,
+      }).busyStatus).to.eql(statusOut);
+
+    }
+
+  });
+
+  it('should create alarms properly', () => {
+
+    let processor = new EventProcessor({
+      alarm: 5,
+    });
+
+    expect(processor._convertEvent({
+      iCalUId: 'abcdefghijklmnopqrstuvwxyz',
+    }).alarms).to.eql([{
+      action: 'display', repeat: 0, trigger: { before: true, minutes: 5, },
+    }]);
+
+  });
 
 });
