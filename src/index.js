@@ -7,6 +7,9 @@ const process = require('process');
 
 const CONFIG_PATH = '../config/config.yml';
 
+// log
+console.log('* ' + new Date().toString());
+
 // load config
 let config = null;
 try {
